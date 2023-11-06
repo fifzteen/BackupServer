@@ -1,17 +1,21 @@
 # Backup Server
 
-raspberry pi 上で動作するファイルバックアップサーバ
+Raspberry pi 上で動作するファイルバックアップサーバ
 
 * rsync 使用した差分バックアップ
 * 複数バックアップの区分管理機能
 * 実行ステータス確認機能
 * 過去世代の保持機能
 
+## requirements
+
+python 3.7 or hieger
+
 ## Usage
 
 1. バックアップ元、バックアップ先を　raspberry pi に mount する
 1. [config.ini](#config.ini) に設定を記載する
-1. サーバ起動する
+1. app.py を実行しサーバ起動する
     - 5000 ポートで起動されます
 1. POST /api/\<user\>/\<target\>/  にリクエストする
 
