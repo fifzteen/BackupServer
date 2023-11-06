@@ -14,7 +14,7 @@ python 3.7 or hieger
 ## Usage
 
 1. バックアップ元、バックアップ先を　raspberry pi に mount する
-1. [config.ini](#config.ini) に設定を記載する
+1. [config.ini](#configini) に設定を記載する
 1. app.py を実行しサーバ起動する
     - 5000 ポートで起動されます
 1. POST /api/\<user\>/\<target\>/  にリクエストする
@@ -38,7 +38,7 @@ python 3.7 or hieger
 
 | method | endpoint | description |
 |------|------|-----|
-| GET | /api/status/ | [実行ステータス]()を取得する |
+| GET | /api/status/ | [実行ステータス](#status)を取得する |
 | POST | /api/clear_error/ | エラーになったタスクをクリアする |
 | POST | /api/\<user\>/\<target\>/ | 対象のユーザー,ターゲットのバックアップを実行する |
 
@@ -52,7 +52,7 @@ keep_count = 3 #　過去世代保持数 0 は過去を保持しない
 date_last = 20200118 # 最終バックアップ実行日付(過去世代保持時の前回日付として使用する)
 ```
 
-## 実行ステータス
+## Status
 
 以下4種あります
 
