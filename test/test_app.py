@@ -24,7 +24,7 @@ def proc():
 
 @pytest.mark.parametrize('cmd, expected', [
     (['python3', 'backup.py', '--user', 'foo', '--target', 'bar'], 'foo_bar'),
-    (['sleep', '10s'], ValueError)
+    (['sleep', '5'], ValueError)
 ], ids=['valid backup command', 'invalid backup command'])
 def test_generate_section(cmd, expected):
     proc = Process(cmd)

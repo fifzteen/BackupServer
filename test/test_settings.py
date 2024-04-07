@@ -14,7 +14,7 @@ TESTDIR = 'testdir'
 USERNAME = 'foobar'
 TYPENAME = 'hogehoge'
 CONFIG_PATH = '../config.example.ini'
-CONFIG_EXAMPLE_PATH = '../config.example2.ini'
+CONFIG_BACKUP_PATH = '../config.examplebk.ini'
 
 @pytest.mark.parametrize('dirpath, date, expected', [
     ('/home/pi3/foo/bar/', '20180903', '/home/pi3/foo/bar_20180903/'),
@@ -27,7 +27,7 @@ def test_create_dirpath_with_date(dirpath, date, expected):
 def fixture_testconfig():
     # 現在のconfig.iniを退避
     shutil.copy2(str(Path(PRJDIR, CONFIG_PATH).resolve()),
-                 str(Path(PRJDIR, CONFIG_EXAMPLE_PATH).resolve()))
+                 str(Path(PRJDIR, CONFIG_BACKUP_PATH).resolve()))
 
     # ソースディレクトリ作成
     os.mkdir(os.path.join(PRJDIR, SRCDIR))
@@ -49,10 +49,10 @@ def fixture_testconfig():
     shutil.rmtree(os.path.join(PRJDIR, SRCDIR))
     shutil.rmtree(os.path.join(PRJDIR, TESTDIR))
     # config戻し
-    shutil.copy2(str(Path(PRJDIR, CONFIG_EXAMPLE_PATH).resolve()),
+    shutil.copy2(str(Path(PRJDIR, CONFIG_BACKUP_PATH).resolve()),
                  str(Path(PRJDIR, CONFIG_PATH).resolve()))
     # config_example.ini削除
-    os.remove(str(Path(PRJDIR, CONFIG_EXAMPLE_PATH).resolve()))
+    os.remove(str(Path(PRJDIR, CONFIG_BACKUP_PATH).resolve()))
 
 @pytest.fixture()
 def cmd_args():
@@ -67,5 +67,5 @@ def test_export_config(cmd_args, fixture_testconfig):
     setting.export_config()
 
     config = configparser.ConfigParser()
-    config.read(CONFIG_PATH, 'UTF-8')
-    assert config[USERNAME+'_'+TYPENAME]['date_last'] == '20180903'
+    config.read(str(Path(PRJDIR, CONFIG_PATH).resolve()), 'UTF-8')
+    assert config[USERNAME+'_'+TYPENAME]['date_last'] == datetime.date.today().strftime('%Y%m%d')

@@ -9,7 +9,7 @@ def pool():
 
 @pytest.fixture()
 def sleep_proc():
-    return Process(['sleep', '10s'])
+    return Process(['sleep', '5'])
 
 @pytest.mark.parametrize('key, expected', [
     (ProcessPool.ERROR, True),

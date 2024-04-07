@@ -13,7 +13,7 @@ logging.basicConfig(level=logging.INFO, format=LOG_FORMATTER)
 
 @pytest.fixture()
 def proc():
-    return Process(cmd=['sleep', '10s'])
+    return Process(cmd=['sleep', '5'])
 
 @pytest.fixture(params=[True, False], ids=['wait', 'not wait'])
 def context(request):
@@ -33,7 +33,7 @@ def context_other_procs(request):
     if request.param == 0:
         return (request.getfixturevalue('proc'), [cmd, cmd], None)
     else:
-        return (request.getfixturevalue('proc'), [cmd, cmd], 5)
+        return (request.getfixturevalue('proc'), [cmd, cmd], 3)
 def test_wait_other_process(context_other_procs):
     proc, other_cmds, timeout = context_other_procs
     for ocmd in other_cmds:
@@ -76,4 +76,4 @@ def test_get_other_process_pids(context_pids):
         assert pids == [oproc.pid for oproc in other_procs]
 
 if __name__ == '__main__':
-    test_wait_other_process(Process(cmd=['sleep', '10s']))
+    test_wait_other_process(Process(cmd=['sleep', '5']))
