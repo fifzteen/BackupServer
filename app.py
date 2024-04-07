@@ -1,6 +1,6 @@
 import time
-from flask import Flask
-app = Flask(__name__)
+from flask import Flask, send_from_directory
+app = Flask(__name__, static_folder="templates", static_url_path="")
 
 import os
 from pathlib import PurePath
@@ -112,7 +112,7 @@ def exec_backup(cmd, pool):
 
 @app.route("/")
 def index():
-    return 'index page'
+    return send_from_directory(app.static_folder, 'index.html')
 
 @app.route("/api/status", methods=["GET"])
 def status():

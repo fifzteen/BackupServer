@@ -1,0 +1,38 @@
+#root {
+  max-width: 1280px;
+}
+
+.page-header {
+  width: 100%;
+  margin-bottom: 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  column-gap: 32px;
+  flex-wrap: wrap;
+
+  h1 {
+    font-size: 2rem;
+    line-height: 1;
+    white-space: nowrap;
+  }
+
+  .actions {
+    flex: 1 1 auto;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    column-gap: 8px;
+  }
+}
+
+.section-container {
+  width: 100%;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+
+  .section {
+    flex: 1 1 auto;
+  }
+}

@@ -1,0 +1,48 @@
+.section {
+  width: 100%;
+  min-width: 320px;
+  padding: 16px;
+  border: 1px solid #dddddd;
+  overflow: hidden;
+
+  .name {
+    margin: 0 0 8px;
+  }
+}
+
+.task-table {
+  width: 100%;
+  border-collapse: collapse;
+
+  .header {
+    background-color: #d9d9d9;
+
+    th {
+      padding: 4px 8px;
+      text-align: left;
+      position: sticky;
+      top: 0;
+      z-index: 1;
+    }
+  }
+
+  .body {
+    overflow: scroll;
+
+    tr {
+      &:nth-child(even) {
+        background-color: #f3f3f3;
+      }
+    }
+
+    td {
+      padding: 4px 8px;
+      white-space: nowrap;
+    }
+
+    .placeholder {
+      color: #555555;
+      text-align: center;
+    }
+  }
+}
