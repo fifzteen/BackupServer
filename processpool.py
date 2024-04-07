@@ -1,3 +1,4 @@
+import datetime
 import logging
 logger = logging.getLogger(__name__)
 
@@ -19,7 +20,7 @@ class ProcessPool:
     ERROR = 'error'
     FINISHED = 'finished'
     RUNNING = 'running'
-    PENDING = 'penfing'
+    PENDING = 'pending'
 
     def __init__(self):
         self.error = []
@@ -63,23 +64,22 @@ class ProcessPool:
             return
 
         # 登録
-        self.map[key].append(proc)
+        self.map[key].append({'proc': proc, 'updated_at': datetime.datetime.now().isoformat()})
 
-    def get_section(self, func):
+    def get_section(self, to_section_name):
         """
         プロセスのセクション辞書を取得する
 
         Parameters
         ----------
-        func : function
+        to_section_name : function
             セクション作成関数
 
         Returns
         -------
-        dict of {str: str}
+        dict of {str: list of {name: str}}
         """
-        procs_sections = {key: [func(v) for v in value] if len(value) > 0 else [] for key, value in self.map.items()}
-        procs_sections = {k: ','.join(v) if len(v) > 0 else '' for k, v in procs_sections.items()}
+        procs_sections = {key: [{'name': to_section_name(v['proc']), 'updated_at': v['updated_at']} for v in value] if len(value) > 0 else [] for key, value in self.map.items()}
         return procs_sections
 
     def move_proc(self, proc, target):
@@ -100,9 +100,14 @@ class ProcessPool:
         """
         # プロセスのある場所を探す
         for k, v in self.map.items():
-            if proc in v:
-                current_key = k
-                break
+            for i, item in enumerate(v):
+                if proc == item['proc']:
+                    key = k
+                    index = i
+                    break
+            else:
+                continue
+            break
         else:
             logger.error('given process not exist in pool')
             return 1
@@ -113,8 +118,8 @@ class ProcessPool:
             return 1
 
         # 処理
-        self.map[current_key].remove(proc)
-        self.map[target].append(proc)
+        self.map[key].pop(index)
+        self.register(proc, target)
 
         return 0
 

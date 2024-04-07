@@ -22,7 +22,7 @@ from process import Process
 from processpool import ProcessPool
 import logutil
 
-def generate_section(proc):
+def to_section_name(proc):
     """
     プロセスからセクション文字列を生成する
 
@@ -52,8 +52,7 @@ def get_status(pool):
     message : str
         ステータスメッセージ
     """
-    # セクションを取得
-    procs_sections = pool.get_section(generate_section)
+    return pool.get_section(to_section_name)
 
     # メッセージ作成
     message = 'error : ' + procs_sections[ProcessPool.ERROR] + '\n'+ \
@@ -124,7 +123,7 @@ def status():
         return get_status(ppool)
     except Exception as e:
         logger.warn('Exception raised. Return warning')
-        return 'something occured. check pi3!\n%s' % e
+        return {'message': 'something occured. check pi3!\n%s' % e}, 500
 
 @app.route("/api/clear_error", methods=["POST"])
 def clear_error():
@@ -132,7 +131,15 @@ def clear_error():
     エラータスクをクリア
     """
     ppool.clear_procs([ProcessPool.ERROR])
-    return 'cleared.\n'
+    return {'message': 'cleared.'}
+
+@app.route("/api/clear_finished", methods=["POST"])
+def clear_finished():
+    """
+    終了タスクをクリア
+    """
+    ppool.clear_procs([ProcessPool.FINISHED])
+    return {'message': 'cleared.'}
 
 @app.route("/api/<user>/<target>", methods=["POST"])
 def backup(user, target):
@@ -152,10 +159,11 @@ def backup(user, target):
     returncode = exec_backup(cmd, ppool)
     if returncode == 0:
         logger.info('Return success')
-        return 'success!\n'
+        return {'message': 'success!'}
     else:
         logger.info('Return failed')
-        return 'failed...\n'
+        # TODO:存在しないキー指定時に400を返す
+        return {'message': 'failed...'}, 500
 
 if __name__ == '__main__':
     ppool = ProcessPool()

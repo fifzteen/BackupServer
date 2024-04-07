@@ -26,13 +26,13 @@ def proc():
     (['python3', 'backup.py', '--user', 'foo', '--target', 'bar'], 'foo_bar'),
     (['sleep', '5'], ValueError)
 ], ids=['valid backup command', 'invalid backup command'])
-def test_generate_section(cmd, expected):
+def test_to_section_name(cmd, expected):
     proc = Process(cmd)
     if isinstance(expected, type) and issubclass(expected, Exception):
         with pytest.raises(expected):
-            generate_section(proc)
+            to_section_name(proc)
     else:
-        assert generate_section(proc) == expected
+        assert to_section_name(proc) == expected
 
 @pytest.fixture(params=[[], ['p'], ['r'], ['f'], ['e'],
                         ['p', 'r'], ['p', 'f'], ['p', 'e'],
@@ -45,30 +45,27 @@ def test_generate_section(cmd, expected):
                      'pending_running_finished', 'pending_running_error', 'pending_finished_error',
                      'running_finished_error', 'all'])
 def context_get_status(request, pool, proc):
-    expected = 'error : %s\nfinished : %s\nrunning : %s\npending : %s\n'
-    sections = {ProcessPool.ERROR: '', ProcessPool.FINISHED: '', ProcessPool.RUNNING: '', ProcessPool.PENDING: ''}
+    sections = {ProcessPool.ERROR: [], ProcessPool.FINISHED: [], ProcessPool.RUNNING: [], ProcessPool.PENDING: []}
     if len(request.param) > 0:
         if 'e' in request.param:
             pool.map[ProcessPool.ERROR].append(proc)
-            sections[ProcessPool.ERROR] = 'foo_bar'
+            sections[ProcessPool.ERROR].append({'name': 'foo_bar'})
         if 'f' in request.param:
             pool.map[ProcessPool.FINISHED].append(proc)
-            sections[ProcessPool.FINISHED] = 'foo_bar'
+            sections[ProcessPool.FINISHED].append({'name': 'foo_bar'})
         if 'r' in request.param:
             pool.map[ProcessPool.RUNNING].append(proc)
-            sections[ProcessPool.RUNNING] = 'foo_bar'
+            sections[ProcessPool.RUNNING].append({'name': 'foo_bar'})
         if 'p' in request.param:
             pool.map[ProcessPool.PENDING].append(proc)
-            sections[ProcessPool.PENDING] = 'foo_bar'
+            sections[ProcessPool.PENDING].append({'name': 'foo_bar'})
 
-    yield (pool, sections,
-            'error : %s\nfinished : %s\nrunning : %s\npending : %s\n' % tuple([v for v in sections.values()]))
+    yield (pool, sections)
 
 def test_get_status(context_get_status, monkeypatch):
-    pool, sections, expected = context_get_status
+    pool, sections = context_get_status
     monkeypatch.setattr(ProcessPool, 'get_section', lambda x,y: sections)
-    assert get_status(pool) == expected
-    assert len(pool.map[ProcessPool.FINISHED]) == 0
+    assert get_status(pool) == sections
 
 @pytest.mark.parametrize('cmd, result', [
     (['true'], 0),

@@ -1,4 +1,5 @@
 import pytest
+import datetime
 
 from process import Process
 from processpool import ProcessPool
@@ -24,9 +25,9 @@ def test_is_in_keys(key, expected, pool):
 ], ids=['exist', 'not exist'])
 def test_register(key, testkey, expected, pool, sleep_proc):
     pool.register(sleep_proc, key)
-    assert (sleep_proc in pool.map[testkey]) == expected
+    assert (sleep_proc in [item['proc'] for item in pool.map[testkey]]) == expected
 
-def stub_function(proc):
+def to_section_name_stub(proc):
     return proc.cmd[0]
 
 @pytest.fixture(params=[[], ['p'], ['r'], ['f'], ['e'],
@@ -40,49 +41,51 @@ def stub_function(proc):
                      'pending_running_finished', 'pending_running_error', 'pending_finished_error',
                      'running_finished_error', 'all'])
 def context_get_section(request, pool, sleep_proc):
-    expected = {ProcessPool.ERROR: '', ProcessPool.FINISHED: '', ProcessPool.RUNNING: '', ProcessPool.PENDING: ''}
+    expected = {ProcessPool.ERROR: [], ProcessPool.FINISHED: [], ProcessPool.RUNNING: [], ProcessPool.PENDING: []}
 
     if len(request.param) > 0:
+        now = datetime.datetime.now().isoformat()
         if 'e' in request.param:
-            pool.map[ProcessPool.ERROR].append(sleep_proc)
-            expected[ProcessPool.ERROR] = 'sleep'
+            pool.map[ProcessPool.ERROR].append({'proc':sleep_proc, 'updated_at': now})
+            expected[ProcessPool.ERROR].append({'name': 'sleep', 'updated_at': now})
         if 'f' in request.param:
-            pool.map[ProcessPool.FINISHED].append(sleep_proc)
-            expected[ProcessPool.FINISHED] = 'sleep'
+            pool.map[ProcessPool.FINISHED].append({'proc':sleep_proc, 'updated_at': now})
+            expected[ProcessPool.FINISHED].append({'name': 'sleep', 'updated_at': now})
         if 'r' in request.param:
             for _ in range(2):
-                pool.map[ProcessPool.RUNNING].append(sleep_proc)
-            expected[ProcessPool.RUNNING] = 'sleep,sleep'
+                pool.map[ProcessPool.RUNNING].append({'proc':sleep_proc, 'updated_at': now})
+                expected[ProcessPool.RUNNING].append({'name': 'sleep', 'updated_at': now})
         if 'p' in request.param:
-            pool.map[ProcessPool.PENDING].append(sleep_proc)
-            expected[ProcessPool.PENDING] = 'sleep'
+            pool.map[ProcessPool.PENDING].append({'proc':sleep_proc, 'updated_at': now})
+            expected[ProcessPool.PENDING].append({'name': 'sleep', 'updated_at': now})
 
     yield pool, expected
 
 def test_get_section(context_get_section):
     pool, expected = context_get_section
-    assert pool.get_section(stub_function) == expected
+    assert pool.get_section(to_section_name_stub) == expected
 
 @pytest.fixture(params=[0, 1, 2], ids=['valid', 'invalid key', 'value not exists'])
-def context_moveproc(request, pool, sleep_proc):
+def context_move_proc(request, pool, sleep_proc):
+    now = datetime.datetime.now().isoformat()
     if request.param == 0:
         # 正常
-        pool.map[ProcessPool.PENDING].append(sleep_proc)
+        pool.map[ProcessPool.PENDING].append({'proc': sleep_proc, 'updated_at': now})
         return pool, sleep_proc, ProcessPool.PENDING, ProcessPool.RUNNING, 0
     elif request.param == 1:
         # キー違反
-        pool.map[ProcessPool.PENDING].append(sleep_proc)
+        pool.map[ProcessPool.PENDING].append({'proc': sleep_proc, 'updated_at': now})
         return pool, sleep_proc, ProcessPool.PENDING, 'foobar', 1
     else:
         # 値がない
         return pool, sleep_proc, ProcessPool.PENDING, ProcessPool.RUNNING, 1
 
-def test_move_proc(context_moveproc):
-    pool, proc, current, target, expected = context_moveproc
+def test_move_proc(context_move_proc):
+    pool, proc, current, target, expected = context_move_proc
     assert pool.move_proc(proc, target) == expected
     if expected == 0:
-        assert proc in pool.map[target]
-        assert proc not in pool.map[current]
+        assert proc in [item['proc'] for item in pool.map[target]]
+        assert proc not in [item['proc'] for item in pool.map[current]]
 
 @pytest.fixture(params=[(ProcessPool.FINISHED,), (ProcessPool.ERROR, ProcessPool.RUNNING)],
                 ids=['single target', 'multi target'])
