@@ -13,16 +13,37 @@ python 3.7 or hieger
 
 ## Usage
 
+1. 依存パッケージをインストールする
+
+    ```sh
+    pip install -r requirements.txt
+    ```
+1. フロントエンドをビルドする
+
+    - templates ディレクトリ内に index として表示されるモジュールがビルドされます
+
+    ```sh
+    cd frontend
+    npm ci
+    npm run build
+    ```
+
 1. バックアップ元、バックアップ先を　raspberry pi に mount する
-1. [config.ini](#configini) に設定を記載する
+1. [config.ini](#config) に設定を記載する
 1. app.py を実行しサーバ起動する
+
     - 5000 ポートで起動されます
+
+    ```sh
+    python3 app.py
+    ```
+
 1. POST /api/\<user\>/\<target\>/  にリクエストする
 
 以下のようにバックアップディレクトリが作成されます(dest を `/mnt/backup/foo/hoge/` にした場合)
 
 ```
-/mnt/backuo/foo
+/mnt/backup/foo
 ├─ hoge # 最新のバックアップディレクトリ
 ├─ hoge_YYYYMMDD # 過去世代のバックアップディレクトリ
 ```
@@ -38,11 +59,15 @@ python 3.7 or hieger
 
 | method | endpoint | description |
 |------|------|-----|
+| GET | / | フロントエンド表示 |
 | GET | /api/status/ | [実行ステータス](#status)を取得する |
 | POST | /api/clear_error/ | エラーになったタスクをクリアする |
+| POST | /api/clear_finished/ | 終了したタスクをクリアする |
 | POST | /api/\<user\>/\<target\>/ | 対象のユーザー,ターゲットのバックアップを実行する |
 
-## config.ini
+## Config
+
+config.ini に以下のように指定する。
 
 ```ini
 [foo_hoge] # バックアップ区分名 (user_target の書式で記載)
@@ -65,8 +90,19 @@ date_last = 20200118 # 最終バックアップ実行日付(過去世代保持�
 
 ```
 # /api/status のレスポンス例
-error: foo_hoge
-finished: foo_fuga,bar_hoge
-running: baz_fuga
-pending: qux_all
+{
+    "error": [
+        { "name": "foo_hoge", "updated_at": "YYYY-MM-DDTHH:mm:ss.SSSZ" }
+    ]
+    "finished": [
+        { "name": "foo_fuga", "updated_at": "YYYY-MM-DDTHH:mm:ss.SSSZ" },
+        { "name": "bar_hoge", "updated_at": "YYYY-MM-DDTHH:mm:ss.SSSZ" }
+    ],
+    "running": [
+        { "name": "baz_fuga", "updated_at": "YYYY-MM-DDTHH:mm:ss.SSSZ" }
+    ],
+    "pending": [
+        { "name": "qux_all", "updated_at": "YYYY-MM-DDTHH:mm:ss.SSSZ" }
+    ]
+}
 ```
